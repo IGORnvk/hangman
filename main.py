@@ -22,13 +22,13 @@ def hello(message):
         return
     users.append(Player(message.from_user.id, 0, message.from_user.username))
     if len(users) == 1:
-        bot.send_message(message.from_user.id, 'Участников слишком мало, ожидайте')
+        bot.send_message(message.from_user.id, 'Участников слишком мало, ожидайте.')
     if len(users) == 2:
         global host, player
         host = 1
         player = 1 - host
         bot.send_message(users[host].id, 'Загадывайте слово')
-        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово')
+        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово.')
         bot.register_next_step_handler(message, set_word2)
 
 
@@ -38,19 +38,14 @@ def set_word2(message):
         word = message.text
         game = Game(word, 6)
         bot.send_message(users[host].id, 'Ваше слово загадано')
-        bot.send_message(users[player].id, 'Второй участник загадал слово. Можете отгадывать')
+        bot.send_message(users[player].id, 'Второй участник загадал слово. Можете отгадывать.')
         a = game.get_mask()
         b = game.lives
-        bot.send_message(users[player].id, a + '\n' + str(b))
-        bot.send_message(users[host].id, a + '\n' + str(b))
+        bot.send_message(users[player].id, a + '\n' + 'Жизни: ' + str(b))
+        bot.send_message(users[host].id, a + '\n' + 'Жизни: ' + str(b))
 
 
-@bot.message_handler(commands=['play'])
-def play(message):
-    bot.send_message(message.from_user.id, 'Введите слово')
-
-
-@bot.message_handler(func=lambda x:len(x.text)==1)
+@bot.message_handler(func=lambda x: len(x.text) == 1)
 def abc(message):
     global host, player
     if game.game_over():
@@ -58,29 +53,32 @@ def abc(message):
         player = host
         host = 1 - player
         bot.send_message(users[host].id, 'Загадывайте слово')
-        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово')
+        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово.')
         bot.register_next_step_handler(message, set_word2)
         return
     game.move(message.text[0])
     a = game.get_mask()
     b = game.lives
-    bot.send_message(message.from_user.id, a + '\n' + str(b))
-    bot.send_message(users[host].id, a + '\n' + str(b))
+    n = 3
+    bot.send_message(message.from_user.id, a + '\n' + 'Жизни: ' + str(b))
+    bot.send_message(users[host].id, a + '\n' + 'Жизни: ' + str(b))
     if game.is_dead():
-        bot.send_message(message.from_user.id, 'Вы проиграли! Попробуйте ещё раз')
+        bot.send_message(message.from_user.id, 'Вы проиграли в этом раунде!')
         bot.send_message(message.from_user.id, 'Слово было: ' + word)
-        if (users[player].points == 2 or users[host].points == 2) and player == 1:
-            if users[player].points == 2 and users[host].points < 2:
+        score()
+        if (users[player].points == n or users[host].points == n) and player == 1:
+            if users[player].points == n and users[host].points < n:
                 bot.send_message(users[player].id,
-                                 'Поздравляю, вы набрали максимальное количество очков и выграли раунд!')
-                bot.send_message(users[host].id, 'К сожалению, вы проиграли текущий раунд, так как ваш оппонент набрал '
+                                 'Поздравляю, вы набрали максимальное количество очков и выграли игру!')
+                bot.send_message(users[host].id, 'К сожалению, вы проиграли игру, так как ваш оппонент набрал '
                                                  'максимальное количество очков!')
-            if users[host].points == 2 and users[player].points < 2:
+            if users[host].points == n and users[player].points < n:
                 bot.send_message(users[host].id,
-                                 'Поздравляю, вы набрали максимальное количество очков и выграли раунд!')
-                bot.send_message(users[player].id, 'К сожалению, вы проиграли текущий раунд, так как ваш оппонент набрал '
-                                                 'максимальное количество очков!')
-            if users[player].points == 2 and users[host].points == 2:
+                                 'Поздравляю, вы набрали максимальное количество очков и выграли игру!')
+                bot.send_message(users[player].id,
+                                 'К сожалению, вы проиграли игру, так как ваш оппонент набрал '
+                                 'максимальное количество очков!')
+            if users[player].points == n and users[host].points == n:
                 bot.send_message(users[player].id, 'Поздравляю, победила дружба :)')
                 bot.send_message(users[host].id, 'Поздравляю, победила дружба :)')
             users[player].points = 0
@@ -88,14 +86,13 @@ def abc(message):
         player = host
         host = 1 - player
         bot.send_message(users[host].id, 'Загадывайте слово')
-        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово')
+        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово.')
         bot.register_next_step_handler(message, set_word2)
         return
     if game.is_won():
-        bot.send_message(message.from_user.id, 'Поздравляю, вы выиграли!')
+        bot.send_message(message.from_user.id, 'Поздравляю, вы выиграли в этом раунде!')
         users[player].points += 1
-        bot.send_message(users[player].id, 'Ваши очки: ' + str(users[player].points))
-        bot.send_message(users[host].id, 'Ваши очки: ' + str(users[host].points))
+        score()
         if (users[player].points == 2 or users[host].points == 2) and player == 1:
             if users[player].points == 2 and users[host].points < 2:
                 bot.send_message(users[player].id,
@@ -105,8 +102,9 @@ def abc(message):
             if users[host].points == 2 and users[player].points < 2:
                 bot.send_message(users[host].id,
                                  'Поздравляю, вы набрали максимальное количество очков и выграли раунд!')
-                bot.send_message(users[player].id, 'К сожалению, вы проиграли текущий раунд, так как ваш оппонент набрал '
-                                                 'максимальное количество очков!')
+                bot.send_message(users[player].id, 'К сожалению, вы проиграли текущий раунд, так как ваш оппонент '
+                                                   'набрал '
+                                                   'максимальное количество очков!')
             if users[player].points == 2 and users[host].points == 2:
                 bot.send_message(users[player].id, 'Поздравляю, победила дружба :)')
                 bot.send_message(users[host].id, 'Поздравляю, победила дружба :)')
@@ -115,9 +113,16 @@ def abc(message):
         player = host
         host = 1 - player
         bot.send_message(users[host].id, 'Загадывайте слово')
-        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово')
+        bot.send_message(users[player].id, 'Вы отгадываете слово. Подождите пока второй участник загадает слово.')
         bot.register_next_step_handler(message, set_word2)
         return
+
+
+def score():
+    c = users[0].points
+    d = users[1].points
+    bot.send_message(users[0].id, 'Счёт: ' + str(c) + '—' + str(d))
+    bot.send_message(users[1].id, 'Счёт: ' + str(d) + '—' + str(c))
 
 
 bot.polling()
